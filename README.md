@@ -11,7 +11,3 @@ A web app to help students plan their academic journey.
 - User authentication
 - Roadmap creation
 - Progress tracking
-
-## Team Members
-- You (Backend)
-- Others (Frontend)
