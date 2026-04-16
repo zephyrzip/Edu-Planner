@@ -4,7 +4,22 @@ import "../styles/auth.css";
 
 export default function Login() {
   const navigate = useNavigate();
-  const role = new URLSearchParams(useLocation().search).get("role");
+  const location = useLocation();
+
+  const role = new URLSearchParams(location.search).get("role");
+
+  // ✅ NEW: proper role-based login function
+  const handleLogin = () => {
+    if (role === "student") {
+      navigate("/student");
+    } else if (role === "teacher") {
+      navigate("/teacher");
+    } else if (role === "admin") {
+      navigate("/admin");
+    } else {
+      alert("Role not found");
+    }
+  };
 
   return (
     <>
@@ -17,7 +32,8 @@ export default function Login() {
           <input className="input" type="email" placeholder="Email" />
           <input className="input" type="password" placeholder="Password" />
 
-          <button className="btn" onClick={() => navigate(`/${role}`)}>
+          {/* ✅ UPDATED BUTTON */}
+          <button className="btn" onClick={handleLogin}>
             Login
           </button>
 
