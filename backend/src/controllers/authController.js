@@ -59,13 +59,19 @@ const loginUser = async (req, res) => {
         // 3. Create token
         const token = jwt.sign(
             { id: user._id, role: user.role },
-            "secretKey123",   // (we’ll move this to .env later)
+            process.env.JWT_SECRET,
             { expiresIn: "1d" }
         );
 
         res.json({
             message: "Login successful",
-            token
+            token,
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role
+            }
         });
 
     } catch (error) {
