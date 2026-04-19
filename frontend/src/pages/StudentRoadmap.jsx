@@ -6,7 +6,15 @@ export default function StudentRoadmap() {
   const [roadmap, setRoadmap] = useState(null);
   const [completed, setCompleted] = useState([]);
 
-  // ✅ Load from localStorage on start
+  // ✅ Auto-load subject from Subjects page
+  useEffect(() => {
+    const savedSubjects = JSON.parse(localStorage.getItem("subjects")) || [];
+    if (savedSubjects.length > 0) {
+      setSubject(savedSubjects[0].name);
+    }
+  }, []);
+
+  // ✅ Load roadmap + progress
   useEffect(() => {
     const savedRoadmap = JSON.parse(localStorage.getItem("roadmap"));
     const savedCompleted = JSON.parse(localStorage.getItem("completed"));
@@ -15,19 +23,39 @@ export default function StudentRoadmap() {
     if (savedCompleted) setCompleted(savedCompleted);
   }, []);
 
-  // ✅ Save to localStorage when changed
+  // ✅ Save to localStorage
   useEffect(() => {
-    localStorage.setItem("roadmap", JSON.stringify(roadmap));
-    localStorage.setItem("completed", JSON.stringify(completed));
+    if (roadmap) {
+      localStorage.setItem("roadmap", JSON.stringify(roadmap));
+      localStorage.setItem("completed", JSON.stringify(completed));
+    }
   }, [roadmap, completed]);
 
-  // ✅ Generate roadmap
+  // ✅ Generate roadmap based on subject
   const generateRoadmap = () => {
-    const data = {
-      high: ["DBMS Transactions", "OS Scheduling"],
-      medium: ["Normalization", "Deadlocks"],
-      low: ["History of DBMS"]
-    };
+    if (!subject.trim()) return;
+
+    let data;
+
+    if (subject.toLowerCase().includes("dbms")) {
+      data = {
+        high: ["Transactions", "Normalization", "SQL"],
+        medium: ["Indexing", "Joins"],
+        low: ["History of DBMS"],
+      };
+    } else if (subject.toLowerCase().includes("dsa")) {
+      data = {
+        high: ["Arrays", "Linked List", "Trees"],
+        medium: ["Graphs", "Recursion"],
+        low: ["Advanced Algorithms"],
+      };
+    } else {
+      data = {
+        high: ["Basics", "Core Concepts"],
+        medium: ["Practice Problems"],
+        low: ["Advanced Topics"],
+      };
+    }
 
     setRoadmap(data);
     setCompleted([]);
@@ -58,6 +86,7 @@ export default function StudentRoadmap() {
   const renderSection = (title, items) => (
     <div className="dashboard-card">
       <h3>{title}</h3>
+
       {items.map((item, i) => (
         <div key={i}>
           <input
@@ -65,7 +94,16 @@ export default function StudentRoadmap() {
             checked={completed.includes(item)}
             onChange={() => toggleComplete(item)}
           />
-          <span style={{ marginLeft: "10px" }}>{item}</span>
+          <span
+            style={{
+              marginLeft: "10px",
+              textDecoration: completed.includes(item)
+                ? "line-through"
+                : "none",
+            }}
+          >
+            {item}
+          </span>
         </div>
       ))}
     </div>
@@ -75,7 +113,7 @@ export default function StudentRoadmap() {
     <DashboardLayout>
       <h1>🗺 AI Study Roadmap</h1>
 
-      {/* Input + Generate */}
+      {/* INPUT */}
       <div className="dashboard-card">
         <h3>🤖 Generate AI Roadmap</h3>
 
@@ -91,7 +129,7 @@ export default function StudentRoadmap() {
         </button>
       </div>
 
-      {/* Progress */}
+      {/* PROGRESS */}
       {roadmap && (
         <div className="dashboard-card">
           <h3>📊 Progress</h3>
@@ -99,7 +137,7 @@ export default function StudentRoadmap() {
         </div>
       )}
 
-      {/* Sections */}
+      {/* ROADMAP */}
       {roadmap && (
         <>
           {renderSection("🔥 High Priority", roadmap.high)}

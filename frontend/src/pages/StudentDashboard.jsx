@@ -13,25 +13,40 @@ import {
 
 export default function StudentDashboard() {
 
-  // 🔥 Dynamic Stats
+  // 🔥 Real Stats from Subjects
   const [stats, setStats] = useState({
-    subjects: 5,
-    tasks: 12,
-    streak: 4,
+    subjects: 0,
+    completed: 0,
+    progress: 0,
   });
 
-  // 🔥 Simulate live update
+  // 🔄 Sync with localStorage
   useEffect(() => {
-    setTimeout(() => {
-      setStats({
-        subjects: 6,
-        tasks: 9,
-        streak: 5,
-      });
-    }, 2000);
-  }, []);
+  const loadData = () => {
+    const saved = JSON.parse(localStorage.getItem("subjects")) || [];
 
-  // 📊 Chart Data
+    const total = saved.length;
+    const done = saved.filter((s) => s.completed).length;
+
+    setStats({
+      subjects: total,
+      completed: done,
+      progress: total ? Math.round((done / total) * 100) : 0,
+    });
+  };
+
+  // initial load
+  loadData();
+
+  // when you come back to tab/page
+  window.addEventListener("focus", loadData);
+
+  return () => {
+    window.removeEventListener("focus", loadData);
+  };
+}, []);
+
+  // 📊 Chart Data (can improve later)
   const data = [
     { name: "Mon", study: 2 },
     { name: "Tue", study: 3 },
@@ -53,13 +68,13 @@ export default function StudentDashboard() {
         </div>
 
         <div className="card">
-          <h3>📝 Tasks</h3>
-          <p>{stats.tasks}</p>
+          <h3>✅ Completed</h3>
+          <p>{stats.completed}</p>
         </div>
 
         <div className="card">
-          <h3>🔥 Streak</h3>
-          <p>{stats.streak} days</p>
+          <h3>📈 Progress</h3>
+          <p>{stats.progress}%</p>
         </div>
       </div>
 
@@ -82,10 +97,13 @@ export default function StudentDashboard() {
         <h3>📈 Course Progress</h3>
 
         <div className="progress-bar">
-          <div className="progress-fill" style={{ width: "70%" }}></div>
+          <div
+            className="progress-fill"
+            style={{ width: `${stats.progress}%` }}
+          ></div>
         </div>
 
-        <p>70% Completed</p>
+        <p>{stats.progress}% Completed</p>
       </div>
 
       {/* ===== ANNOUNCEMENTS ===== */}
