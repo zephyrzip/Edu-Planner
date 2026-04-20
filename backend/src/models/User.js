@@ -18,7 +18,20 @@ const userSchema = new mongoose.Schema({
         type: String,
         enum: ["student", "teacher", "admin"],
         default: "student"
+    },
+
+    // 🔐 OTP FIELDS
+    isVerified: {
+        type: Boolean,
+        default: false
+    },
+    otp: {
+        type: String
+    },
+    otpExpiry: {
+        type: Date
     }
+
 }, { timestamps: true });
 
 module.exports = mongoose.model("User", userSchema);

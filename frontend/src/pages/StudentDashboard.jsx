@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../layouts/DashboardLayout";
 import "../styles/auth.css";
 
@@ -12,41 +13,49 @@ import {
 } from "recharts";
 
 export default function StudentDashboard() {
+  const navigate = useNavigate();
 
-  // 🔥 Real Stats from Subjects
+  // 🔐 AUTH CHECK (IMPORTANT)
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      navigate("/login");
+    }
+  }, [navigate]);
+
+  // 🔥 Stats state
   const [stats, setStats] = useState({
     subjects: 0,
     completed: 0,
     progress: 0,
   });
 
-  // 🔄 Sync with localStorage
+  // 🔄 Load local data
   useEffect(() => {
-  const loadData = () => {
-    const saved = JSON.parse(localStorage.getItem("subjects")) || [];
+    const loadData = () => {
+      const saved = JSON.parse(localStorage.getItem("subjects")) || [];
 
-    const total = saved.length;
-    const done = saved.filter((s) => s.completed).length;
+      const total = saved.length;
+      const done = saved.filter((s) => s.completed).length;
 
-    setStats({
-      subjects: total,
-      completed: done,
-      progress: total ? Math.round((done / total) * 100) : 0,
-    });
-  };
+      setStats({
+        subjects: total,
+        completed: done,
+        progress: total ? Math.round((done / total) * 100) : 0,
+      });
+    };
 
-  // initial load
-  loadData();
+    loadData();
 
-  // when you come back to tab/page
-  window.addEventListener("focus", loadData);
+    window.addEventListener("focus", loadData);
 
-  return () => {
-    window.removeEventListener("focus", loadData);
-  };
-}, []);
+    return () => {
+      window.removeEventListener("focus", loadData);
+    };
+  }, []);
 
-  // 📊 Chart Data (can improve later)
+  // 📊 Chart Data
   const data = [
     { name: "Mon", study: 2 },
     { name: "Tue", study: 3 },
@@ -57,7 +66,6 @@ export default function StudentDashboard() {
 
   return (
     <DashboardLayout>
-
       <h1 className="page-title">📊 Student Dashboard</h1>
 
       {/* ===== STATS ===== */}
@@ -119,7 +127,6 @@ export default function StudentDashboard() {
         <p>✔ Study DBMS</p>
         <p>✔ Practice DSA</p>
       </div>
-
     </DashboardLayout>
   );
 }

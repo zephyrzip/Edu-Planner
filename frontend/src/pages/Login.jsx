@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import API from "../api";
 import "../styles/auth.css";
 
 export default function Login() {
@@ -8,16 +10,37 @@ export default function Login() {
 
   const role = new URLSearchParams(location.search).get("role");
 
-  // ✅ NEW: proper role-based login function
-  const handleLogin = () => {
-    if (role === "student") {
-      navigate("/student");
-    } else if (role === "teacher") {
-      navigate("/teacher");
-    } else if (role === "admin") {
-      navigate("/admin");
-    } else {
-      alert("Role not found");
+  const [form, setForm] = useState({
+    email: "",
+    password: ""
+  });
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleLogin = async () => {
+    try {
+      const res = await API.post("/auth/login", form);
+
+      alert(res.data.message);
+
+      // store token
+      localStorage.setItem("token", res.data.token);
+
+      // role-based redirect (from backend user)
+      const userRole = res.data.user.role;
+
+      if (userRole === "student") {
+        navigate("/student");
+      } else if (userRole === "teacher") {
+        navigate("/teacher");
+      } else if (userRole === "admin") {
+        navigate("/admin");
+      }
+
+    } catch (error) {
+      alert(error.response?.data?.message || "Login failed");
     }
   };
 
@@ -29,10 +52,22 @@ export default function Login() {
         <div className="form-box">
           <h2>{role?.toUpperCase()} LOGIN</h2>
 
-          <input className="input" type="email" placeholder="Email" />
-          <input className="input" type="password" placeholder="Password" />
+          <input
+            className="input"
+            type="email"
+            name="email"
+            placeholder="Email"
+            onChange={handleChange}
+          />
 
-          {/* ✅ UPDATED BUTTON */}
+          <input
+            className="input"
+            type="password"
+            name="password"
+            placeholder="Password"
+            onChange={handleChange}
+          />
+
           <button className="btn" onClick={handleLogin}>
             Login
           </button>

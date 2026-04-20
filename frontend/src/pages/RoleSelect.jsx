@@ -14,17 +14,17 @@ export default function RoleSelect() {
         <p>Select your role</p>
 
         <div className="roles">
-          <div className="card" onClick={() => navigate("/login?role=student")}>
+          <div className="card" onClick={() => navigate("/signup?role=student")}>
             🎓 <h3>Student</h3>
             <p>Study roadmap</p>
           </div>
 
-          <div className="card" onClick={() => navigate("/login?role=teacher")}>
+          <div className="card" onClick={() => navigate("/signup?role=teacher")}>
             👨‍🏫 <h3>Teacher</h3>
             <p>Upload resources</p>
           </div>
 
-          <div className="card" onClick={() => navigate("/login?role=admin")}>
+          <div className="card" onClick={() => navigate("/signup?role=admin")}>
             🛠 <h3>Admin</h3>
             <p>Manage system</p>
           </div>

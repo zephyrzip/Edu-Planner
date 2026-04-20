@@ -1,29 +1,33 @@
-const dotenv = require("dotenv");
-dotenv.config();
-const express = require("express");
-const connectDB = require("./config/db");
+require("dotenv").config();
 
+const express = require("express");
+const cors = require("cors");
+
+const connectDB = require("./config/db");
 
 const app = express();
 
-// IMPORTANT: allows JSON body parsing
+// ================= MIDDLEWARE =================
+app.use(cors()); // 🔥 allow frontend connection
 app.use(express.json());
 
-// connect database
+// ================= DEBUG (REMOVE LATER) =================
+console.log("MONGO_URI =", process.env.MONGO_URI);
+
+// ================= DATABASE CONNECTION =================
 connectDB();
 
-// import routes
+// ================= ROUTES =================
 const authRoutes = require("./routes/authRoutes");
-
-// mount routes
 app.use("/api/auth", authRoutes);
 
-// test route
+// ================= TEST ROUTE =================
 app.get("/test", (req, res) => {
-    res.send("Backend + MongoDB running");
+    res.send("Backend + MongoDB running 🚀");
 });
 
-const PORT = process.env.PORT || 3000;
+// ================= SERVER START =================
+const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
     console.log("Server running on port", PORT);
