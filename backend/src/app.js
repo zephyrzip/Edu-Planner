@@ -7,9 +7,12 @@ const connectDB = require("./config/db");
 
 const app = express();
 
+const roadmapRoutes = require("./routes/roadmapRoutes");
+
 // ================= MIDDLEWARE =================
 app.use(cors()); // 🔥 allow frontend connection
 app.use(express.json());
+app.use("/api/roadmap", roadmapRoutes);
 
 // ================= DEBUG (REMOVE LATER) =================
 console.log("MONGO_URI =", process.env.MONGO_URI);
