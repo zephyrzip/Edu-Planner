@@ -25,19 +25,14 @@ export default function Login() {
 
       alert(res.data.message);
 
-      // store token
+      // ✅ Store token
       localStorage.setItem("token", res.data.token);
 
-      // role-based redirect (from backend user)
-      const userRole = res.data.user.role;
+      // ✅ Store user (VERY IMPORTANT for ProtectedRoute)
+      localStorage.setItem("user", JSON.stringify(res.data.user));
 
-      if (userRole === "student") {
-        navigate("/student");
-      } else if (userRole === "teacher") {
-        navigate("/teacher");
-      } else if (userRole === "admin") {
-        navigate("/admin");
-      }
+      // ✅ Redirect based on role (clean & safe)
+      navigate(`/${res.data.user.role}`);
 
     } catch (error) {
       alert(error.response?.data?.message || "Login failed");
@@ -57,6 +52,7 @@ export default function Login() {
             type="email"
             name="email"
             placeholder="Email"
+            value={form.email}
             onChange={handleChange}
           />
 
@@ -65,6 +61,7 @@ export default function Login() {
             type="password"
             name="password"
             placeholder="Password"
+            value={form.password}
             onChange={handleChange}
           />
 
