@@ -1,3 +1,5 @@
+const mongoose = require("mongoose");
+
 const roadmapSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -55,3 +57,5 @@ const roadmapSchema = new mongoose.Schema({
   }
 
 }, { timestamps: true });
+
+module.exports = mongoose.model("Roadmap", roadmapSchema);

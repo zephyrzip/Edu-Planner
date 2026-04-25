@@ -34,4 +34,7 @@ const protect = (req, res, next) => {
     }
 };
 
-module.exports = { protect };
+module.exports = { 
+    protect, 
+    authMiddleware: protect // alias for easier imports
+ };

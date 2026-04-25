@@ -14,9 +14,6 @@ app.use(cors()); // 🔥 allow frontend connection
 app.use(express.json());
 app.use("/api/roadmap", roadmapRoutes);
 
-// ================= DEBUG (REMOVE LATER) =================
-console.log("MONGO_URI =", process.env.MONGO_URI);
-
 // ================= DATABASE CONNECTION =================
 connectDB();
 

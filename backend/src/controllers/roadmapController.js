@@ -1,3 +1,6 @@
+const Topic = require("../models/topic");
+const Roadmap = require("../models/roadmap");
+
 const generateRoadmap = async (req, res) => {
   try {
     const { subject, daysLeft, difficulty } = req.body;
@@ -8,11 +11,15 @@ const generateRoadmap = async (req, res) => {
     }
 
     // Fetch topics
-    let topics = await Topic.find({ subject: subject.toLowerCase() });
+    let topics = await Topic.find({
+      subject: new RegExp(`^${subject}$`, "i")
+    });
 
     if (!topics.length) {
-      topics = getDefaultTopics(subject);
-    }
+      return res.status(404).json({
+      message: "No topics found for this subject. Please add topics first."
+    });
+}
 
     // Sort by priorityScore (better than string priority)
     topics.sort((a, b) => (b.priorityScore || 0) - (a.priorityScore || 0));
@@ -74,7 +81,7 @@ const getMyRoadmap = async (req, res) => {
 
     const roadmap = await Roadmap.find({ userId }).sort({ createdAt: -1 });
 
-    if (!roadmap) {
+    if (!roadmap.length) {
       return res.status(404).json({ message: "No roadmap found" });
     }
 
@@ -83,4 +90,9 @@ const getMyRoadmap = async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
+};
+
+module.exports = {
+  generateRoadmap,
+  getMyRoadmap
 };

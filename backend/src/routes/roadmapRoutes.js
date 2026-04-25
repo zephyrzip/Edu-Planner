@@ -2,8 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const { generateRoadmap, getMyRoadmap } = require("../controllers/roadmapController");
-const authMiddleware = require("../middleware/authMiddleware");
-
+const { authMiddleware } = require("../middleware/authMiddleware");
 // Generate roadmap (protected)
 router.post("/generate-roadmap", authMiddleware, generateRoadmap);
 

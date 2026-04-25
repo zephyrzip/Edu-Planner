@@ -1,3 +1,5 @@
+const mongoose = require("mongoose");
+
 const topicSchema = new mongoose.Schema({
   subject: { type: String, required: true },
 
@@ -38,3 +40,5 @@ const topicSchema = new mongoose.Schema({
 
   description: String
 }, { timestamps: true });
+
+module.exports = mongoose.model("Topic", topicSchema);
