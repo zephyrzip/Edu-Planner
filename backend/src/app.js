@@ -9,13 +9,14 @@ const app = express();
 
 const roadmapRoutes = require("./routes/roadmapRoutes");
 const topicRoutes = require("./routes/topicRoutes");
+const resourceRoutes = require("./routes/resourceRoutes");
 
 // ================= MIDDLEWARE =================
 app.use(cors()); // 🔥 allow frontend connection
 app.use(express.json());
 app.use("/api/roadmap", roadmapRoutes);
 app.use("/api/topics", topicRoutes);
-
+app.use("/api", resourceRoutes);
 // ================= DATABASE CONNECTION =================
 connectDB();
 
