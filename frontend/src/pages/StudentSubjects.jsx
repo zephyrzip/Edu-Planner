@@ -5,100 +5,142 @@ export default function StudentSubjects() {
   const [subject, setSubject] = useState("");
   const [subjects, setSubjects] = useState([]);
 
-  // ✏️ Edit states
   const [editIndex, setEditIndex] = useState(null);
   const [editValue, setEditValue] = useState("");
 
+  // 🔍 New states
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState("all");
+
   // Load from localStorage
   useEffect(() => {
-  const loadData = () => {
-    const saved = JSON.parse(localStorage.getItem("subjects")) || [];
-    setSubjects(saved);
-  };
+    const loadData = () => {
+      const saved = JSON.parse(localStorage.getItem("subjects")) || [];
+      setSubjects(saved);
+    };
 
-  // initial load
-  loadData();
+    loadData();
+    window.addEventListener("focus", loadData);
 
-  // reload when coming back to page
-  window.addEventListener("focus", loadData);
+    return () => window.removeEventListener("focus", loadData);
+  }, []);
 
-  return () => {
-    window.removeEventListener("focus", loadData);
-  };
-}, []);
-
-  // Save to localStorage
+  // Save
   useEffect(() => {
     localStorage.setItem("subjects", JSON.stringify(subjects));
   }, [subjects]);
 
-  // ➕ Add Subject
+  // ➕ Add
   const addSubject = () => {
     if (!subject.trim()) return;
 
-    setSubjects([
-      ...subjects,
-      { name: subject, completed: false }
-    ]);
-
+    setSubjects([...subjects, { name: subject, completed: false }]);
     setSubject("");
   };
 
-  // ❌ Delete Subject
+  // ❌ Delete
   const deleteSubject = (index) => {
     const updated = subjects.filter((_, i) => i !== index);
     setSubjects(updated);
   };
 
-  // ✏️ Start Editing
+  // ✏️ Edit
   const startEdit = (index) => {
     setEditIndex(index);
-    setEditValue(subjects[index].name); // ✅ FIXED
+    setEditValue(subjects[index].name);
   };
 
-  // 💾 Save Edit
   const saveEdit = () => {
     const updated = [...subjects];
-    updated[editIndex].name = editValue; // ✅ FIXED
+    updated[editIndex].name = editValue;
     setSubjects(updated);
     setEditIndex(null);
   };
 
-  // ✅ Toggle Complete
+  // ✅ Toggle
   const toggleComplete = (index) => {
     const updated = [...subjects];
     updated[index].completed = !updated[index].completed;
     setSubjects(updated);
   };
 
+  // 🔍 Filter logic
+  const filteredSubjects = subjects
+    .filter((s) =>
+      s.name.toLowerCase().includes(search.toLowerCase())
+    )
+    .filter((s) => {
+      if (filter === "completed") return s.completed;
+      if (filter === "pending") return !s.completed;
+      return true;
+    });
+
   return (
     <DashboardLayout>
       <h1 className="page-title">📚 My Subjects</h1>
 
-      {/* ADD SUBJECT */}
+      {/* ➕ ADD */}
       <div className="card">
-        <input
-          className="input"
-          value={subject}
-          onChange={(e) => setSubject(e.target.value)}
-          placeholder="Enter subject (e.g. DBMS)"
-        />
+        <div style={{ display: "flex", gap: "10px" }}>
+          <input
+            className="input"
+            value={subject}
+            onChange={(e) => setSubject(e.target.value)}
+            placeholder="Enter subject (e.g. DBMS)"
+          />
 
-        <button className="btn" onClick={addSubject}>
-          ➕ Add Subject
-        </button>
+          <button className="btn" onClick={addSubject}>
+            ➕ Add
+          </button>
+        </div>
       </div>
 
-      {/* SUBJECT LIST */}
+      {/* 🔍 SEARCH + FILTER */}
+      <div className="card" style={{ display: "flex", gap: "10px" }}>
+        <input
+          className="input"
+          placeholder="🔍 Search subjects..."
+          onChange={(e) => setSearch(e.target.value)}
+        />
+
+        <select
+          className="input"
+          onChange={(e) => setFilter(e.target.value)}
+        >
+          <option value="all">All</option>
+          <option value="completed">Completed</option>
+          <option value="pending">Pending</option>
+        </select>
+      </div>
+
+      {/* 📊 STATS */}
+      <div className="card" style={{ display: "flex", gap: "20px" }}>
+        <span>📚 Total: {subjects.length}</span>
+        <span>
+          ✅ Completed: {subjects.filter((s) => s.completed).length}
+        </span>
+      </div>
+
+      {/* 📋 LIST */}
       <div className="card">
         <h3>Your Subjects</h3>
 
-        {subjects.length === 0 ? (
-          <p>No subjects added yet</p>
+        {filteredSubjects.length === 0 ? (
+          <p style={{ textAlign: "center", opacity: 0.6 }}>
+            📭 No subjects found
+          </p>
         ) : (
-          subjects.map((sub, index) => (
-            <div key={index} className="subject-item">
-
+          filteredSubjects.map((sub, index) => (
+            <div
+              key={index}
+              className="subject-item"
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: "10px",
+              }}
+            >
               {editIndex === index ? (
                 <>
                   <input
@@ -107,16 +149,18 @@ export default function StudentSubjects() {
                     onChange={(e) => setEditValue(e.target.value)}
                   />
 
-                  <button className="save-btn" onClick={saveEdit}>
-                    💾
-                  </button>
+                  <div>
+                    <button className="save-btn" onClick={saveEdit}>
+                      💾
+                    </button>
 
-                  <button
-                    className="cancel-btn"
-                    onClick={() => setEditIndex(null)}
-                  >
-                    ❌
-                  </button>
+                    <button
+                      className="cancel-btn"
+                      onClick={() => setEditIndex(null)}
+                    >
+                      ❌
+                    </button>
+                  </div>
                 </>
               ) : (
                 <>
@@ -125,13 +169,13 @@ export default function StudentSubjects() {
                       textDecoration: sub.completed
                         ? "line-through"
                         : "none",
+                      fontWeight: "500",
                     }}
                   >
                     {sub.name}
                   </span>
 
-                  <div>
-                    {/* ✅ COMPLETE BUTTON */}
+                  <div style={{ display: "flex", gap: "8px" }}>
                     <button
                       className="complete-btn"
                       onClick={() => toggleComplete(index)}
@@ -155,7 +199,6 @@ export default function StudentSubjects() {
                   </div>
                 </>
               )}
-
             </div>
           ))
         )}
