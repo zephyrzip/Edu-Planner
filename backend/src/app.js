@@ -8,11 +8,13 @@ const connectDB = require("./config/db");
 const app = express();
 
 const roadmapRoutes = require("./routes/roadmapRoutes");
+const topicRoutes = require("./routes/topicRoutes");
 
 // ================= MIDDLEWARE =================
 app.use(cors()); // 🔥 allow frontend connection
 app.use(express.json());
 app.use("/api/roadmap", roadmapRoutes);
+app.use("/api/topics", topicRoutes);
 
 // ================= DATABASE CONNECTION =================
 connectDB();
