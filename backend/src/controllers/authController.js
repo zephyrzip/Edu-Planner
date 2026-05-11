@@ -1,57 +1,117 @@
-const User = require("../models/user");
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcryptjs");
-const nodemailer = require("nodemailer");
+import User from "../models/User.js";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
+import nodemailer from "nodemailer";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 // ================= EMAIL TRANSPORT =================
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
-  port: 587,
-  secure: false,
+
+  port: 465,
+
+  secure: true,
+
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
 });
 
+transporter.verify((error, success) => {
+
+  if (error) {
+
+    console.error(
+      "❌ Email transporter error:",
+      error
+    );
+
+  } else {
+
+    console.log(
+      "✅ Email transporter ready"
+    );
+
+  }
+
+});
+
 // ================= OTP GENERATOR =================
 const generateOTP = () => {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+
+  return Math.floor(
+    100000 + Math.random() * 900000
+  ).toString();
+
 };
 
-// ================= SEND EMAIL FUNCTION =================
-const sendOTPEmail = async (email, otp) => {
-  try {
-    const info = await transporter.sendMail({
-      from: process.env.EMAIL_USER,
+// ================= SEND EMAIL =================
+const sendOTPEmail = async (
+  email,
+  otp
+) => {
+
+  const info =
+    await transporter.sendMail({
+
+      from:
+        `"OTP Verification" <${process.env.EMAIL_USER}>`,
+
       to: email,
+
       subject: "OTP Verification",
+
       text: `Your OTP is: ${otp}`,
+
     });
 
-    console.log("✅ Email sent:", info.response);
-  } catch (error) {
-    console.error("❌ MAIL ERROR:", error);
-    throw error;
-  }
+  console.log(
+    "✅ OTP EMAIL SENT:",
+    info.response
+  );
+
 };
 
 // ================= REGISTER =================
-const registerUser = async (req, res) => {
-  try {
-    const { name, email, password, role } = req.body;
+export const registerUser = async (
+  req,
+  res
+) => {
 
-    const existingUser = await User.findOne({ email });
+  try {
+
+    const {
+      name,
+      email,
+      password,
+      role,
+    } = req.body;
+
+    const existingUser =
+      await User.findOne({ email });
+
     if (existingUser) {
-      return res.status(400).json({ message: "User already exists" });
+
+      return res.status(400).json({
+        message:
+          "User already exists",
+      });
+
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword =
+      await bcrypt.hash(password, 10);
 
     const otp = generateOTP();
-    const otpExpiry = Date.now() + 5 * 60 * 1000;
+
+    const otpExpiry =
+      Date.now() + 5 * 60 * 1000;
 
     const user = await User.create({
+
       name,
       email,
       password: hashedPassword,
@@ -59,98 +119,201 @@ const registerUser = async (req, res) => {
       otp,
       otpExpiry,
       isVerified: false,
+
     });
 
-    try {
-      await sendOTPEmail(email, otp);
-    } catch (error) {
-      return res.status(500).json({ message: "Failed to send OTP email" });
-    }
+    // ✅ TEMPORARY OTP DIRECT RESPONSE
+    console.log(
+      "✅ GENERATED OTP:",
+      otp
+    );
 
-    res.status(201).json({
-      message: "OTP sent to email. Please verify.",
+    return res.status(201).json({
+
+      message:
+        "OTP generated successfully",
+
       email: user.email,
+
+      otp,
+
     });
+
   } catch (error) {
-    console.error("❌ REGISTER ERROR:", error);
-    res.status(500).json({ message: "Server error" });
+
+    console.error(
+      "❌ REGISTER ERROR:",
+      error
+    );
+
+    return res.status(500).json({
+      message: "Server error",
+    });
+
   }
+
 };
 
 // ================= VERIFY OTP =================
-const verifyOTP = async (req, res) => {
+export const verifyOTP = async (
+  req,
+  res
+) => {
+
   try {
-    const { email, otp } = req.body;
 
-    const user = await User.findOne({ email });
+    const { email, otp } =
+      req.body;
+
+    const user =
+      await User.findOne({
+        email,
+      });
+
     if (!user) {
-      return res.status(400).json({ message: "User not found" });
+
+      return res.status(400).json({
+        message: "User not found",
+      });
+
     }
 
-    if (!user.otp || !user.otpExpiry) {
-      return res.status(400).json({ message: "OTP not generated" });
-    }
+    if (
+      user.otpExpiry < Date.now()
+    ) {
 
-    if (user.otpExpiry < Date.now()) {
-      return res.status(400).json({ message: "OTP expired" });
+      return res.status(400).json({
+        message: "OTP expired",
+      });
+
     }
 
     if (user.otp !== otp) {
-      return res.status(400).json({ message: "Invalid OTP" });
+
+      return res.status(400).json({
+        message: "Invalid OTP",
+      });
+
     }
 
     user.isVerified = true;
+
     user.otp = null;
+
     user.otpExpiry = null;
 
     await user.save();
 
-    res.json({ message: "Account verified successfully" });
+    return res.json({
+      message:
+        "Account verified successfully",
+    });
+
   } catch (error) {
-    console.error("❌ VERIFY OTP ERROR:", error);
-    res.status(500).json({ message: "Server error" });
+
+    console.error(
+      "❌ VERIFY ERROR:",
+      error
+    );
+
+    return res.status(500).json({
+      message: "Server error",
+    });
+
   }
+
 };
 
 // ================= LOGIN =================
-const loginUser = async (req, res) => {
-  try {
-    const { email, password } = req.body;
+export const loginUser = async (
+  req,
+  res
+) => {
 
-    const user = await User.findOne({ email });
+  try {
+
+    const { email, password } =
+      req.body;
+
+    const user =
+      await User.findOne({
+        email,
+      });
+
     if (!user) {
-      return res.status(400).json({ message: "User not found" });
+
+      return res.status(400).json({
+        message: "User not found",
+      });
+
     }
 
     if (!user.isVerified) {
-      return res.status(403).json({ message: "Please verify OTP first" });
+
+      return res.status(403).json({
+        message:
+          "Verify OTP first",
+      });
+
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    const isMatch =
+      await bcrypt.compare(
+        password,
+        user.password
+      );
+
     if (!isMatch) {
-      return res.status(400).json({ message: "Invalid credentials" });
+
+      return res.status(400).json({
+        message:
+          "Invalid credentials",
+      });
+
     }
 
     const token = jwt.sign(
-      { id: user._id, role: user.role },
+
+      {
+        id: user._id,
+        role: user.role,
+      },
+
       process.env.JWT_SECRET,
-      { expiresIn: "1d" }
+
+      {
+        expiresIn: "1d",
+      }
+
     );
 
-    res.json({
-      message: "Login successful",
+    return res.json({
+
+      message:
+        "Login successful",
+
       token,
+
       user: {
         id: user._id,
         name: user.name,
         email: user.email,
         role: user.role,
       },
-    });
-  } catch (error) {
-    console.error("❌ LOGIN ERROR:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-};
 
-module.exports = { registerUser, loginUser, verifyOTP };
+    });
+
+  } catch (error) {
+
+    console.error(
+      "❌ LOGIN ERROR:",
+      error
+    );
+
+    return res.status(500).json({
+      message: "Server error",
+    });
+
+  }
+
+};

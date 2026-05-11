@@ -3,6 +3,7 @@ import DashboardLayout from "../layouts/DashboardLayout";
 import API from "../api";
 
 export default function StudentRoadmap() {
+
   const [subject, setSubject] = useState("");
   const [daysLeft, setDaysLeft] = useState("");
   const [roadmap, setRoadmap] = useState(null);
@@ -15,10 +16,16 @@ export default function StudentRoadmap() {
 
   // Auto-load subject from Subjects page
   useEffect(() => {
-    const savedSubjects = JSON.parse(localStorage.getItem("subjects")) || [];
+
+    const savedSubjects =
+      JSON.parse(localStorage.getItem("subjects")) || [];
+
     if (savedSubjects.length > 0) {
+
       setSubject(savedSubjects[0].name);
+
     }
+
   }, []);
 
   // Load completed topics from localStorage
@@ -99,6 +106,7 @@ export default function StudentRoadmap() {
         ? prev.filter((t) => t !== topicName)
         : [...prev, topicName]
     );
+
   };
 
   const getProgress = () => {
@@ -227,5 +235,6 @@ export default function StudentRoadmap() {
           </div>
         ))}
     </DashboardLayout>
+
   );
 }
